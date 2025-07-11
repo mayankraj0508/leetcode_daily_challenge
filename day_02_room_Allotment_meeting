@@ -1,0 +1,72 @@
+class Solution {
+public: 
+    #define pp pair<long long,int>  // Fix: use long long to avoid overflow
+    static bool cmp(vector<int>&a,vector<int>&b){
+        return a[0]<b[0];
+    }
+
+    int mostBooked(int n, vector<vector<int>>&nums) {
+        vector<int>rooms(n,0);
+        sort(nums.begin(),nums.end(),cmp);
+        priority_queue<pp,vector<pp>,greater<pp>>pq;//{time,room}
+        int k = n-1;
+        unordered_map<int,long long>m; // store end times safely
+        pq.push({nums[0][1],0});
+        rooms[0]++;
+        m[0] = nums[0][1];
+        int p = 1;
+
+        for(int i =1;i<nums.size();i++){
+            if(nums[i][0]<pq.top().first){
+                if(p<=k){
+                    pq.push({nums[i][1],p});
+                    rooms[p]++;
+                    m[p] = nums[i][1];
+                    p++;
+                } 
+                else if(pq.size()>0&&p>k){
+                    while(!pq.empty() && m[pq.top().second] != pq.top().first){
+                        pq.pop(); // remove stale entries
+                    }
+                    if(pq.size()>0){
+                        long long l = pq.top().first + (long long)(nums[i][1] - nums[i][0]);
+                        int room = pq.top().second;
+                        pq.pop();
+                        pq.push({l,room});
+                        m[room] = l;
+                        rooms[room]++;
+                    }
+                }
+            }
+            else if(pq.size()>0&&nums[i][0]>=pq.top().first){
+                int minroom = -1;
+for (int l = 0; l < n; l++) {
+    if (m.count(l) == 0 || m[l] <= nums[i][0]) {
+        minroom = l;
+        break; 
+    }
+}
+                
+                m[minroom] = nums[i][1];
+                if(minroom==pq.top().second){
+                    pq.pop();
+                }
+                pq.push({nums[i][1],minroom});
+                rooms[minroom]++;  
+            }
+        }
+        int find = INT_MIN;
+        for(int i=0; i<rooms.size();i++){
+            find = max(find,rooms[i]);
+        }
+        int ans = 0;
+        for(int i = 0; i<rooms.size();i++){
+            if(rooms[i]==find){
+                ans = i;
+                break;
+            }
+        }
+        return ans;
+    }
+};
+
